@@ -1,0 +1,41 @@
+# Python/cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local environments
+.venv/
+venv/
+env/
+
+# IDE/editor
+.idea/
+.vscode/
+.codegraph/
+
+# Runtime/generated indexes
+data/processed/chroma*/
+data/processed/report_*render*/
+data/processed/*.db
+data/processed/table_index.json
+data/processed/metadata.json
+
+# Keep final deliverables and the latest evaluation summary
+!data/processed/evaluation_report.json
+!data/processed/ST_QueryEngine_Report_final.docx
+
+# Older generated report artifacts
+data/processed/CJC-Templet_Word2003_converted.docx
+data/processed/ST_QueryEngine_Report.docx
+data/processed/ST_QueryEngine_Report_fixed.docx
+data/processed/*_word_export.pdf
+
+# Word temporary lock files
+~$*
+*.tmp
+
+# OS noise
+.DS_Store
+Thumbs.db

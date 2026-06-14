@@ -1,0 +1,10 @@
+*.xlsx binary
+*.docx binary
+*.pdf binary
+*.db binary
+*.json text
+*.jsonl text
+*.py text
+*.md text
+*.yaml text
+*.yml text

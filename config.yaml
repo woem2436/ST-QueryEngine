@@ -1,0 +1,22 @@
+llm:
+  enabled: false
+  provider: "deepseek"
+  api_key_env: "DEEPSEEK_API_KEY"
+  model: "DeepSeek-V3-0324"
+  base_url: "https://api.deepseek.com/v1"
+
+embedding:
+  model: "offline-bm25"
+  device: "cpu"
+
+storage:
+  raw_dir: "data/raw"
+  sqlite_db_path: "data/processed/table_data.db"
+  index_json_path: "data/processed/table_index.json"
+  kv_json_path: "data/processed/metadata.json"
+  chroma_persist_dir: "data/processed/chroma_db"
+
+evaluation:
+  rouge_l_threshold: 0.5
+  numeric_tolerance: 0.01
+

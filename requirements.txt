@@ -1,0 +1,14 @@
+openpyxl
+pandas
+pyyaml
+pytest
+
+# Optional online/semantic extensions:
+# chromadb
+# sentence-transformers
+# langchain
+# langchain-community
+# langchain-openai
+# openai
+# langchain-deepseek
+
