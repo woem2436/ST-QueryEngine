@@ -4,7 +4,7 @@ import pandas as pd
 
 
 class StructureAnalyzer:
-    """Extract lightweight structural signals from a parsed table."""
+    """从已解析表格中抽取轻量级结构信号。"""
 
     def __init__(self, df: pd.DataFrame):
         self.df = df
@@ -58,4 +58,3 @@ class StructureAnalyzer:
             "null_ratio": float(self.df.isnull().sum().sum() / total_cells),
             "column_types": self.infer_column_types(self.df),
         }
-

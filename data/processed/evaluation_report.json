@@ -1,8 +1,8 @@
 {
   "total": 764,
-  "accuracy": 0.5549738219895288,
+  "accuracy": 0.5536649214659686,
   "category_accuracy": {
-    "Content Match": 0.6136363636363636,
+    "Content Match": 0.6115702479338843,
     "Semantic-Aware": 0.4715447154471545,
     "Numeric Computation": 0.4394904458598726
   },
@@ -759,9 +759,9 @@
     },
     {
       "question": "变更状态代码表有几个状态？",
-      "pred": "3",
+      "pred": "1",
       "truth": "3",
-      "correct": true,
+      "correct": false,
       "category": "Content Match",
       "table_id": 10,
       "difficulty": "Simple",
@@ -4933,7 +4933,7 @@
     },
     {
       "question": "交通工程学院的交通运输专业负责人老师电话是什么",
-      "pred": "0531-86361175",
+      "pred": "0531-86361275，0531-86361175",
       "truth": "0531-86361175",
       "correct": true,
       "category": "Content Match",
@@ -6483,7 +6483,7 @@
     },
     {
       "question": "2012年8月水费和电费的总预存金额是多少？",
-      "pred": "200，500，1200",
+      "pred": "500，800",
       "truth": "3200",
       "correct": false,
       "category": "Numeric Computation",

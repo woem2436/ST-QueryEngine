@@ -14,19 +14,19 @@ df = pd.DataFrame({
     "利润率": [0.25, 0.30]
 })
 
-# 测试SQL存储
+# 测试 SQL 存储
 sql_db = SQLStorage("data/processed/test.db")
 sql_db.create_table_from_df("products", df, if_exists="replace")
 result = sql_db.execute_query("SELECT * FROM products WHERE 销售额 > 150")
 print("SQL查询结果:", result)
 sql_db.close()
 
-# 测试KV存储
+# 测试 KV 存储
 kv = KVStorage("data/processed/metadata.json")
 kv.set("table_notes", "这是一个测试表格")
 print("KV读取:", kv.get("table_notes"))
 
-# 测试向量存储（需要下载模型，首次运行稍慢）
+# 测试向量存储；当前实现使用离线 sparse-token fallback，不需要下载模型
 vec = VectorStorage("data/processed/chroma_test", embedding_model_name="BAAI/bge-small-zh-v1.5")
 vec.create_collection("test_collection")
 vec.add_documents(

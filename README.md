@@ -44,10 +44,18 @@ data/processed/evaluation_report.json
 
 ## 当前实验结果
 
-在 764 条 `test.jsonl` 全量样本上，当前离线混合引擎准确率为 55.50%。
+在 764 条 `test.jsonl` 全量样本上，当前离线混合引擎准确率为 55.37%。
 
 ```text
-Content Match: 61.36%
+Content Match: 61.16%
 Numeric Computation: 43.95%
 Semantic-Aware: 47.15%
+```
+
+## 报告文件
+
+扩写后的课程报告位于：
+
+```text
+data/processed/ST_QueryEngine_Report_final_expanded.docx
 ```

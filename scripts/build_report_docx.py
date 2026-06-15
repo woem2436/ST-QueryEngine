@@ -12,6 +12,7 @@ from docx.shared import Inches, Pt, RGBColor
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = PROJECT_ROOT / "data" / "processed" / "CJC-Templet_Word2003_converted.docx"
 OUTPUT = PROJECT_ROOT / "data" / "processed" / "ST_QueryEngine_Report_final.docx"
+FALLBACK_OUTPUT = PROJECT_ROOT / "data" / "processed" / "ST_QueryEngine_Report_final_expanded.docx"
 
 
 def set_east_asia_font(run, font_name="宋体"):
@@ -188,7 +189,7 @@ def add_front_matter(doc):
     add_kv_line(
         doc,
         "摘  要：",
-        "现实中的 Excel 表格常包含合并单元格、多级表头、横向键值对和章节式说明，难以直接转换为规则关系表并使用 SQL 查询。本文围绕课程项目“表格数据的智能查询系统”，以 SSTQA-zh 数据集为测试基准，设计并实现了一个离线可复现的半结构化表格问答系统。系统首先对原始工作簿进行结构分析与证据化拆分，生成单元格证据、行证据、表级元数据和局部关系视图；随后根据问题语义将查询路由到关系执行、键值查找、稀疏检索、列表抽取、计数、极值和聚合计算等策略。系统参考 ST-Raptor 对半结构化表格“先恢复结构、再执行操作”的思想，但采用轻量规则和本地 SQLite/JSON 存储，避免课堂环境中对外部 LLM 和向量数据库的强依赖。当前系统在 SSTQA-zh 的 764 条测试样本上取得 55.50% 的整体准确率，其中内容匹配类为 61.36%，数值计算类为 43.95%，语义感知类为 47.15%。实验表明，结构保留、混合存储和可解释路由能够显著提高复杂表格问答的稳定性。",
+        "现实中的 Excel 表格常包含合并单元格、多级表头、横向键值对和章节式说明，难以直接转换为规则关系表并使用 SQL 查询。本文围绕课程项目“表格数据的智能查询系统”，以 SSTQA-zh 数据集为测试基准，设计并实现了一个离线可复现的半结构化表格问答系统。系统首先对原始工作簿进行结构分析与证据化拆分，生成单元格证据、行证据、表级元数据和局部关系视图；随后根据问题语义将查询路由到关系执行、键值查找、稀疏检索、列表抽取、计数、极值和聚合计算等策略。系统参考 ST-Raptor 对半结构化表格“先恢复结构、再执行操作”的思想，但采用轻量规则和本地 SQLite/JSON 存储，避免课堂环境中对外部 LLM 和向量数据库的强依赖。当前系统在 SSTQA-zh 的 764 条测试样本上取得 55.37% 的整体准确率，其中内容匹配类为 61.16%，数值计算类为 43.95%，语义感知类为 47.15%。实验表明，结构保留、混合存储和可解释路由能够显著提高复杂表格问答的稳定性。",
     )
     add_kv_line(
         doc,
@@ -208,12 +209,143 @@ def add_front_matter(doc):
     add_kv_line(
         doc,
         "Abstract: ",
-        "This project builds an offline and reproducible question answering system for semi-structured Excel tables in SSTQA-zh. The system converts workbooks into cell evidence, row evidence, table metadata and local relational views, then routes natural-language questions to relational execution, key-value lookup, sparse retrieval, list extraction, counting, extreme-value search and aggregation. Inspired by ST-Raptor's structure-first operation pipeline, the implementation uses lightweight rules with SQLite and JSON indexes so that it can run without mandatory external LLM or vector-database services. On 764 test questions, the current system reaches 55.50% overall accuracy.",
+        "This project builds an offline and reproducible question answering system for semi-structured Excel tables in SSTQA-zh. The system converts workbooks into cell evidence, row evidence, table metadata and local relational views, then routes natural-language questions to relational execution, key-value lookup, sparse retrieval, list extraction, counting, extreme-value search and aggregation. Inspired by ST-Raptor's structure-first operation pipeline, the implementation uses lightweight rules with SQLite and JSON indexes so that it can run without mandatory external LLM or vector-database services. On 764 test questions, the current system reaches 55.37% overall accuracy.",
     )
     add_kv_line(
         doc,
         "Key words: ",
         "semi-structured tables; natural language query; hybrid storage; query routing; SQLite; SSTQA-zh",
+    )
+
+
+def add_file_details_appendix(doc):
+    appendix_section = doc.add_section(WD_SECTION.CONTINUOUS)
+    set_section_columns(appendix_section, 1)
+
+    add_heading(doc, "附录A Python 文件实现说明", 1)
+    add_paragraph(
+        doc,
+        "为了便于复现和维护，本节按文件说明项目中主要 Python 文件的职责、输入输出和实现思路。源码总体遵循“入口调度、结构解析、证据索引、混合执行、结果评测”的分层方式：上层文件负责任务流程，下层文件负责存储、检索、分类和答案匹配，测试与脚本文件用于验证和生成报告。",
+    )
+    add_table(
+        doc,
+        ["文件", "功能与实现思路"],
+        [
+            [
+                "src/main.py",
+                "命令行入口和系统编排文件。它读取 config.yaml，初始化 TableQuerySystem，并根据参数决定执行单条问答、重建索引或全量评测。评测时逐行读取 test.jsonl，根据 table_id 调用 HybridQueryEngine，随后用 AnswerMatcher 判断预测答案是否正确，并把结果写入 evaluation_report.json。",
+            ],
+            [
+                "src/hybrid_engine.py",
+                "系统主查询引擎。启动时加载 TableIndexer 生成的 CellRecord 与 RowRecord，并按 table_id 建立内存索引。回答问题时先尝试 RelationalAnswerEngine；若其置信度不足，再按 lookup、list、count、extreme、sum、avg 等路由使用规则执行器和单元格检索兜底。last_trace 用于 explain 模式展示答案来源。",
+            ],
+            [
+                "src/relational_engine.py",
+                "当前准确率提升的核心文件。它把部分半结构化表恢复成 TableView，包括表头、记录行、首列和月份宽表列。随后按问题抽取实体、指标、月份、条件和聚合意图，执行筛选、计数、极值、求和、均值、差值和百分比计算。该模块带有置信度门控，避免低可信关系结果覆盖检索结果。",
+            ],
+            [
+                "src/table_indexer.py",
+                "索引构建文件。它遍历 data/raw 下的 Excel 文件，填充合并单元格、提取标题和行列上下文，为每个非空单元格生成 CellRecord，为每行生成 RowRecord。索引同时写入 SQLite 和 JSON：SQLite 便于审计和结构化查询，JSON 便于快速加载和离线检索。",
+            ],
+            [
+                "src/text_utils.py",
+                "文本规范化与打分工具库。它负责中文问题清洗、数字抽取、Excel 显示值格式化、单位提取、中文 n-gram token 生成、加权重合度计算和去重。该文件使不同模块可以共享同一套文本匹配逻辑，避免各处重复写字符串处理代码。",
+            ],
+            [
+                "src/parser/excel_parser.py",
+                "Excel 解析器。它使用 openpyxl 读取公式缓存后的显示值，填充合并区域，裁剪外围全空行列，并在可识别表头时返回带列名的 DataFrame。其设计目标不是立即得到完美关系表，而是尽量保留原始视觉结构，为后续证据索引和局部关系恢复提供基础。",
+            ],
+            [
+                "src/parser/structure_analyzer.py",
+                "轻量结构分析器。它可以抽取前若干行的多级表头、将层级表头展平成列名，并根据数据列内容推断 numeric、datetime 或 text 类型。当前主流程主要使用更强的 TableIndexer 与 RelationalAnswerEngine，但该文件保留了可扩展的结构分析接口。",
+            ],
+            [
+                "src/router/query_router.py",
+                "透明规则路由器。它按关键词把问题粗分为 SQL_AGG、KV_LOOKUP、VECTOR_SEARCH、CELL_LOOKUP 等类别，并映射到对应 Agent 名称。它的优点是无需 API、结果可解释；缺点是语义覆盖有限，因此主流程中还叠加了 HybridQueryEngine 的细粒度路由。",
+            ],
+            [
+                "src/router/query_classifier.py",
+                "可选 LLM 分类器。若 config.yaml 中启用 LLM 且配置 API key，则尝试使用 langchain_deepseek 调用模型输出 JSON 分类；否则自动回退到 RuleBasedRouter。这样既保留语义分类扩展空间，又不影响离线课堂环境运行。",
+            ],
+            [
+                "src/storage/sql_storage.py",
+                "SQLite 存储封装。它可以把 DataFrame 写成数据库表，执行 SQL 查询，获取表名并关闭连接。该模块主要服务 SQLAgent 和早期原型，也体现了课程数据库部分的关系型存储接口。",
+            ],
+            [
+                "src/storage/kv_storage.py",
+                "JSON 文件形式的 Key-Value 存储。它提供 set、get、delete、contains、get_all 等基础接口，适合保存表级说明、数据来源、单位和运行元数据等不适合放入关系表的轻量信息。",
+            ],
+            [
+                "src/storage/vector_storage.py",
+                "离线检索存储。它保留 VectorStorage 的 public API，但默认不依赖 ChromaDB 或 sentence-transformers，而是把文档转换成 sparse-token 计数，按 token 重合分数排序。这样脚本和测试无需下载模型也可以运行。",
+            ],
+            [
+                "src/agents/sql_agent.py",
+                "SQL 聚合 Agent。它读取 SQLite 中的首个表和列名，基于问题中的总和、平均、计数、最大、最小等关键词拼接受控 SQL 聚合语句。它是可解释 SQL 查询路径的简单原型，适合规则表，但不直接处理复杂半结构化布局。",
+            ],
+            [
+                "src/agents/kv_agent.py",
+                "KV 查询 Agent。它先尝试问题是否直接包含某个 key；若没有，再用 weighted_overlap 在 key 和 value 文本中找最相关项。适合“数据来源是什么”“单位是什么”等元数据问题。",
+            ],
+            [
+                "src/agents/vector_agent.py",
+                "检索增强 Agent。它调用 VectorStorage 搜索相关文档片段，若配置了 LLMAgent 则把片段作为上下文交给 LLM；否则直接返回检索到的片段。该模块体现了向量/语义检索扩展路线，但默认可离线运行。",
+            ],
+            [
+                "src/agents/llm_agent.py",
+                "可选 LLM 封装器。它读取 DEEPSEEK_API_KEY 等环境变量；未配置 API key 时返回离线兜底说明，而不是让系统报错。这样报告中可以说明 LLM 是可选增强，而不是系统运行前提。",
+            ],
+            [
+                "src/evaluator/answer_matcher.py",
+                "答案匹配器。它先做文本规范化和精确匹配，再做数值容差、百分比换算、列表集合匹配和 LCS/ROUGE-L 风格相似度判断。这样可以兼容“50000”和“50000人”、列表顺序差异、长文本包含答案等情况。",
+            ],
+            [
+                "src/evaluator/statistics.py",
+                "评测统计器。它保存每条问题的预测、标准答案、是否正确、类别和路由等信息，计算整体准确率和分类准确率，并可导出为 evaluation_report.json。",
+            ],
+            [
+                "scripts/build_report_docx.py",
+                "报告生成脚本。它基于课程模板创建最终 DOCX，设置标题、摘要、正文分栏、表格样式和参考文献，并把当前项目指标、实现细节和文件说明写入报告。后续只要修改脚本文本并重新运行即可得到新版报告。",
+            ],
+            [
+                "scripts/vectorize_tables.py",
+                "可选的批量检索准备脚本。它遍历 raw Excel 文件，把每行转换为文本片段并写入 VectorStorage。当前主流程不依赖它，但它展示了如何扩展到向量/语义检索路径。",
+            ],
+            [
+                "tests/test_core_behavior.py",
+                "核心行为测试。它验证数值答案不能被子串误判、规则路由能识别计数问题、离线 VectorStorage 能按 token 找到相关文档，是防止关键回归的最小测试集。",
+            ],
+            [
+                "tests/test_parser.py",
+                "解析调试脚本。它读取示例 Excel，打印解析后的 DataFrame、表格形状、多级表头和展平列名，主要用于观察 ExcelParser 与 StructureAnalyzer 的效果。",
+            ],
+            [
+                "tests/test_router.py",
+                "路由调试脚本。它用若干自然语言问题打印 RuleBasedRouter 的分类和目标 Agent，方便检查关键词路由是否符合预期。",
+            ],
+            [
+                "tests/test_storage.py",
+                "存储调试脚本。它分别演示 SQLStorage、KVStorage 和 VectorStorage 的基本读写与查询，用于快速确认三类存储接口是否可用。",
+            ],
+            [
+                "tests/test_classifier.py",
+                "分类器调试脚本。它初始化 QueryClassifier，对聚合、元数据、列表和复杂分析问题进行分类，用于检查 LLM 未启用时的规则回退表现。",
+            ],
+            [
+                "tests/prepare_kv_data.py",
+                "KV 示例数据准备脚本。它向 metadata.json 写入数据来源、表格说明、单位和创建时间等示例元数据，便于测试 KV 查询路径。",
+            ],
+            [
+                "tests/prepare_vector_data.py",
+                "检索示例数据准备脚本。它把示例 Excel 的每一行转换为文档片段并写入 VectorStorage，用于演示离线 sparse-token 检索流程。",
+            ],
+            [
+                "各级 __init__.py",
+                "包初始化文件。它们主要用于让 src、parser、storage、router、agents、evaluator 等目录被 Python 识别为包，方便模块间通过 import 引用。",
+            ],
+        ],
+        [1.85, 4.65],
+        font_size=7.3,
     )
 
 
@@ -304,7 +436,7 @@ def add_body(doc):
         doc,
         ["问题", "处理"],
         [
-            ["旧指标仍为 30.37%", "同步为最新 55.50%"],
+            ["旧指标仍为 30.37%", "同步为最新 55.37%"],
             ["关系表缺失", "新增局部关系视图"],
             ["章节计数失败", "记录章节与条目边界"],
             ["月份宽表错误", "识别月份列并执行差值"],
@@ -316,7 +448,7 @@ def add_body(doc):
     add_heading(doc, "8 实验设置与结果", 1)
     add_paragraph(
         doc,
-        "实验在本地 Windows + Python 环境中完成，默认不启用在线 LLM API。评测命令为 python src/main.py --evaluate --quiet，系统读取完整 test.jsonl，并将结果写入 data/processed/evaluation_report.json。当前版本全量样本准确率为 55.50%，已接近课程项目设定的 60% 左右目标。",
+        "实验在本地 Windows + Python 环境中完成，默认不启用在线 LLM API。评测命令为 python src/main.py --evaluate --quiet，系统读取完整 test.jsonl，并将结果写入 data/processed/evaluation_report.json。当前版本全量样本准确率为 55.37%，已接近课程项目设定的 60% 左右目标。",
     )
     add_table(
         doc,
@@ -324,7 +456,7 @@ def add_body(doc):
         [
             ["初始版", "30.37%", "单元格检索为主"],
             ["中间版", "46.99%", "加入关系执行"],
-            ["当前版", "55.50%", "增强宽表、章节、列表"],
+            ["当前版", "55.37%", "增强宽表、章节、列表"],
         ],
         [0.9, 0.75, 1.35],
     )
@@ -332,7 +464,7 @@ def add_body(doc):
         doc,
         ["类别", "样本", "准确率"],
         [
-            ["Content Match", "484", "61.36%"],
+            ["Content Match", "484", "61.16%"],
             ["Numeric Computation", "157", "43.95%"],
             ["Semantic-Aware", "123", "47.15%"],
         ],
@@ -366,8 +498,10 @@ def add_body(doc):
     add_heading(doc, "11 结论", 1)
     add_paragraph(
         doc,
-        "本文完成了一个面向 SSTQA-zh 的表格数据智能查询系统，实现了从 Excel 结构解析、混合存储、自然语言查询、路由执行到准确率评测的完整闭环。系统当前在 764 条测试样本上达到 55.50% 的准确率，说明结构分析、存储选择和查询路由是解决半结构化表格问答的有效路径。虽然距离 ST-Raptor 这类完整 LLM 框架仍有差距，但该系统已经具备课程项目所需的完整性、可解释性和可继续研究的扩展空间。",
+        "本文完成了一个面向 SSTQA-zh 的表格数据智能查询系统，实现了从 Excel 结构解析、混合存储、自然语言查询、路由执行到准确率评测的完整闭环。系统当前在 764 条测试样本上达到 55.37% 的准确率，说明结构分析、存储选择和查询路由是解决半结构化表格问答的有效路径。虽然距离 ST-Raptor 这类完整 LLM 框架仍有差距，但该系统已经具备课程项目所需的完整性、可解释性和可继续研究的扩展空间。",
     )
+
+    add_file_details_appendix(doc)
 
     add_heading(doc, "参考文献", 1)
     references = [
@@ -396,8 +530,12 @@ def build_report():
     add_front_matter(doc)
     add_body(doc)
 
-    doc.save(str(OUTPUT))
-    return OUTPUT
+    try:
+        doc.save(str(OUTPUT))
+        return OUTPUT
+    except PermissionError:
+        doc.save(str(FALLBACK_OUTPUT))
+        return FALLBACK_OUTPUT
 
 
 if __name__ == "__main__":

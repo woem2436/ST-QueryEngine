@@ -5,12 +5,11 @@ from src.text_utils import token_counter
 
 
 class VectorStorage:
-    """A small retrieval store with optional vector-like behavior.
+    """带有可选向量化行为的小型检索存储。
 
-    The original project depended on ChromaDB and sentence-transformers. Those
-    packages are useful, but they make the course project hard to run on a clean
-    machine. This class keeps the same public API and implements a deterministic
-    sparse-token fallback, so tests and evaluation can run offline.
+    原始方案可依赖 ChromaDB 和 sentence-transformers。这些包很有用，
+    但会让课程项目在干净机器上更难运行。本类保留相同 public API，
+    同时实现确定性的 sparse-token fallback，使测试和评测可以离线完成。
     """
 
     def __init__(self, persist_dir: str, embedding_model_name: str = "offline-bm25"):
@@ -67,4 +66,3 @@ class VectorStorage:
 
     def list_collections(self) -> List[str]:
         return sorted(self.collections)
-

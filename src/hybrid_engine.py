@@ -124,7 +124,7 @@ GENERIC_FILTERS = {
 
 
 class HybridQueryEngine:
-    """Hybrid SQL/KV/search/rule engine for SSTQA-style Excel table QA."""
+    """面向 SSTQA 风格 Excel 表格问答的 SQL/KV/检索/规则混合引擎。"""
 
     def __init__(self, raw_dir: str, sqlite_path: str, index_path: str, rebuild: bool = False):
         self.indexer = TableIndexer(raw_dir, sqlite_path, index_path)

@@ -108,7 +108,7 @@ class RowRecord:
 
 
 class TableIndexer:
-    """Builds a reproducible SQLite + JSON evidence index for semi-structured Excel tables."""
+    """为半结构化 Excel 表格构建可复现的 SQLite + JSON 证据索引。"""
 
     def __init__(self, raw_dir: str, sqlite_path: str, index_path: str):
         self.raw_dir = Path(raw_dir)

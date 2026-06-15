@@ -54,7 +54,7 @@ GENERIC_TOKENS = {
 
 
 def normalize_text(value: Any) -> str:
-    """Normalize text for matching while keeping Chinese characters intact."""
+    """规范化匹配文本，同时保留中文字符本身。"""
     if value is None:
         return ""
     text = str(value).lower()
@@ -64,7 +64,7 @@ def normalize_text(value: Any) -> str:
 
 
 def display_value(value: Any, number_format: str = "") -> str:
-    """Convert an Excel value to a stable human-readable answer string."""
+    """把 Excel 单元格值转换成稳定、易读的答案字符串。"""
     if value is None:
         return ""
     if isinstance(value, datetime):
@@ -174,7 +174,7 @@ def dedupe_keep_order(values: Iterable[Any]) -> List[Any]:
 
 
 def extract_unit(context: str) -> str:
-    """Find a compact unit marker from nearby headers, e.g. 金额（万元）."""
+    """从附近表头中提取简短单位标记，例如“金额（万元）”。"""
     text = str(context)
     matches = re.findall(r"[（(]([^（）()]{1,8})[）)]", text)
     for unit in reversed(matches):
@@ -199,4 +199,3 @@ def append_unit_if_needed(value: str, unit: str) -> str:
     if re.fullmatch(r"[-+]?\d+(?:\.\d+)?", value.replace(",", "")):
         return f"{value}{unit}"
     return value
-

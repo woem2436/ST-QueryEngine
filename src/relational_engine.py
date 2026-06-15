@@ -29,7 +29,7 @@ class TableView:
 
 
 class RelationalAnswerEngine:
-    """High-confidence executor for regular relational tables and month-wide tables."""
+    """针对规则关系表和月份宽表的高置信度执行器。"""
 
     def __init__(self, rows_by_table: Dict[int, List[RowRecord]]):
         self.rows_by_table = rows_by_table

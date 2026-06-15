@@ -9,11 +9,10 @@ from .query_router import RuleBasedRouter
 
 
 class QueryClassifier:
-    """LLM-optional classifier.
+    """可选 LLM 的问题分类器。
 
-    If langchain_deepseek and an API key are available, the classifier can use
-    the model. Otherwise it falls back to RuleBasedRouter, which keeps the
-    project runnable in offline classroom environments.
+    如果安装了 langchain_deepseek 且配置了 API key，分类器可以调用模型；
+    否则回退到 RuleBasedRouter，保证项目在离线课堂环境中也能运行。
     """
 
     def __init__(self, config_path: str = "config.yaml"):
@@ -72,4 +71,3 @@ class QueryClassifier:
             result = self.rule_router.classify(question)
             result.setdefault("key_entities", [])
             return result
-

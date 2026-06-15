@@ -3,10 +3,10 @@ from typing import Optional
 
 
 class LLMAgent:
-    """Optional LLM wrapper.
+    """可选的 LLM 封装器。
 
-    The project can run without an API key. When no key/client is available,
-    this agent returns a concise fallback message instead of raising errors.
+    项目可以在没有 API key 的情况下运行；当没有配置 key 或客户端时，
+    该 Agent 返回简短的离线兜底说明，而不是抛出异常中断流程。
     """
 
     def __init__(self, api_key_env: str = "DEEPSEEK_API_KEY", model: str = "deepseek-chat"):
@@ -22,4 +22,3 @@ class LLMAgent:
     def answer(self, question: str, context: Optional[str] = "") -> str:
         prompt = f"问题：{question}\n上下文：{context or '无'}\n答案："
         return self._call_llm(prompt)
-

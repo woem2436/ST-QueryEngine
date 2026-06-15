@@ -8,11 +8,10 @@ from src.text_utils import display_value
 
 
 class ExcelParser:
-    """Excel parser for semi-structured tables.
+    """半结构化表格的 Excel 解析器。
 
-    It fills merged cells, removes all-empty outer rows/columns, and returns a
-    DataFrame that keeps the original visual structure instead of forcing every
-    sheet into a single flat relational table too early.
+    它会填充合并单元格、移除外围全空行列，并返回保留原始视觉结构的
+    DataFrame，避免过早把所有 sheet 强行压平成单一关系表。
     """
 
     def __init__(self, file_path: str):
@@ -102,4 +101,3 @@ def _is_number_like(value: Any) -> bool:
         return True
     except ValueError:
         return False
-

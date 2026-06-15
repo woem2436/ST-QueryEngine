@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 
 class RuleBasedRouter:
-    """Transparent router for table QA query types."""
+    """用于表格 QA 问题类型的透明规则路由器。"""
 
     def __init__(self):
         self.sql_keywords = [
@@ -48,4 +48,3 @@ class RuleBasedRouter:
             "COMPLEX_REASONING": "llm_agent",
         }
         return mapping.get(category, "hybrid_agent")
-
