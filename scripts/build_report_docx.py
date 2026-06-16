@@ -234,9 +234,6 @@ def add_front_matter(doc):
 
 
 def add_file_details_appendix(doc):
-    appendix_section = doc.add_section(WD_SECTION.CONTINUOUS)
-    set_section_columns(appendix_section, 2)
-
     add_heading(doc, "附录A Python 文件实现说明", 1)
     add_paragraph(
         doc,
@@ -493,6 +490,10 @@ def add_body(doc):
         doc,
         "本文完成了一个面向 SSTQA-zh 的表格数据智能查询系统，实现了从 Excel 结构解析、混合存储、自然语言查询、路由执行到准确率评测的完整闭环。系统当前在 764 条测试样本上达到 55.37% 的准确率，说明结构分析、存储选择和查询路由是解决半结构化表格问答的有效路径。虽然距离 ST-Raptor 这类完整 LLM 框架仍有差距，但该系统已经具备课程项目所需的完整性、可解释性和可继续研究的扩展空间。",
     )
+
+    appendix_break = doc.add_paragraph()
+    appendix_break.paragraph_format.space_after = Pt(0)
+    appendix_break.add_run().add_break(WD_BREAK.PAGE)
 
     add_file_details_appendix(doc)
 
