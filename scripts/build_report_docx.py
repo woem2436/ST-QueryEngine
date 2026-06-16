@@ -3,7 +3,7 @@ from pathlib import Path
 from docx import Document
 from docx.enum.section import WD_SECTION
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
@@ -235,16 +235,15 @@ def add_front_matter(doc):
 
 def add_file_details_appendix(doc):
     appendix_section = doc.add_section(WD_SECTION.CONTINUOUS)
-    set_section_columns(appendix_section, 1)
+    set_section_columns(appendix_section, 2)
 
     add_heading(doc, "附录A Python 文件实现说明", 1)
     add_paragraph(
         doc,
         "为了便于复现和维护，本节按文件说明项目中主要 Python 文件的职责、输入输出和实现思路。源码总体遵循“入口调度、结构解析、证据索引、混合执行、结果评测”的分层方式：上层文件负责任务流程，下层文件负责存储、检索、分类和答案匹配，测试与脚本文件用于验证和生成报告。",
     )
-    add_table(
+    add_labeled_items(
         doc,
-        ["文件", "功能与实现思路"],
         [
             [
                 "src/main.py",
@@ -359,8 +358,6 @@ def add_file_details_appendix(doc):
                 "包初始化文件。它们主要用于让 src、parser、storage、router、agents、evaluator 等目录被 Python 识别为包，方便模块间通过 import 引用。",
             ],
         ],
-        [1.85, 4.65],
-        font_size=7.3,
     )
 
 
@@ -499,16 +496,20 @@ def add_body(doc):
 
     add_file_details_appendix(doc)
 
+    break_p = doc.add_paragraph()
+    break_p.paragraph_format.space_after = Pt(0)
+    break_p.add_run().add_break(WD_BREAK.COLUMN)
+
     add_heading(doc, "参考文献", 1)
     references = [
-        "[1] Tang Z, Niu B, Zhou X, Li B, Zhou W, Wang J, Li G, Zhang X, Wu F. ST-Raptor: LLM-Powered Semi-Structured Table Question Answering. arXiv:2508.18190, 2025.",
+        "[1] Tang Z, Niu B, Zhou X, Li B, Zhou W, Wang J, Li G, Zhang X, Wu F. ST-Raptor: LLM-Powered Semi-Structured Table Question Answering. arXiv:2508.18190, 2025. https://arxiv.org/abs/2508.18190",
         "[2] OpenDataBox/ST-Raptor. SSTQA-zh dataset. https://github.com/OpenDataBox/ST-Raptor/tree/master/data/SSTQA-zh",
-        "[3] weAIDB/ST-Raptor. LLM-Powered Semi-Structured Table Question Answering. https://github.com/weAIDB/ST-Raptor",
-        "[4] Python Software Foundation. sqlite3: DB-API 2.0 interface for SQLite databases.",
-        "[5] openpyxl documentation. https://openpyxl.readthedocs.io/",
+        "[3] OpenDataBox/ST-Raptor. LLM-Powered Semi-Structured Table Question Answering. https://github.com/OpenDataBox/ST-Raptor",
+        "[4] Python Software Foundation. sqlite3: DB-API 2.0 interface for SQLite databases. https://docs.python.org/3/library/sqlite3.html",
+        "[5] openpyxl documentation. https://openpyxl.readthedocs.io/en/stable/",
     ]
     for ref in references:
-        add_paragraph(doc, ref, first_line=False)
+        add_paragraph(doc, ref, align=WD_ALIGN_PARAGRAPH.LEFT, first_line=False)
 
 
 def build_report():
