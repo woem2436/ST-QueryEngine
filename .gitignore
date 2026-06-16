@@ -22,12 +22,12 @@ data/processed/*.db
 data/processed/table_index.json
 data/processed/metadata.json
 
-# Keep final deliverables and the latest evaluation summary
+# Keep the latest evaluation summary
 !data/processed/evaluation_report.json
-!data/processed/ST_QueryEngine_Report_final.docx
 
-# Older generated report artifacts
+# Generated report artifacts
 data/processed/CJC-Templet_Word2003_converted.docx
+data/processed/ST_QueryEngine_Report_final*.docx
 data/processed/ST_QueryEngine_Report.docx
 data/processed/ST_QueryEngine_Report_fixed.docx
 data/processed/*_word_export.pdf

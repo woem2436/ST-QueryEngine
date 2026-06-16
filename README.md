@@ -52,10 +52,10 @@ Numeric Computation: 43.95%
 Semantic-Aware: 47.15%
 ```
 
-## 报告文件
+## 报告生成
 
-校对后的课程报告位于：
+课程报告 DOCX 属于本地交付文件，默认不提交到 GitHub。需要重新生成时运行：
 
-```text
-data/processed/ST_QueryEngine_Report_final.docx
+```bash
+python scripts/build_report_docx.py
 ```
