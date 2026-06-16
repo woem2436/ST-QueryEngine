@@ -101,6 +101,21 @@ def add_kv_line(doc, key, value):
     return p
 
 
+def add_labeled_items(doc, items):
+    """在双栏正文中用紧凑段落替代表格，避免分栏分页时表格被切开。"""
+    for label, text in items:
+        p = doc.add_paragraph()
+        fmt = p.paragraph_format
+        fmt.first_line_indent = Pt(0)
+        fmt.line_spacing = 1.05
+        fmt.space_after = Pt(2)
+        r1 = p.add_run(f"{label}：")
+        r1.bold = True
+        set_east_asia_font(r1, "黑体")
+        r2 = p.add_run(text)
+        set_east_asia_font(r2)
+
+
 def shade_cell(cell, fill):
     tc_pr = cell._tc.get_or_add_tcPr()
     shd = OxmlElement("w:shd")
@@ -181,7 +196,7 @@ def add_front_matter(doc):
     )
     add_paragraph(
         doc,
-        "单位：__________    项目链接：待补充",
+        "单位：__________    项目链接：https://github.com/woem2436/ST-QueryEngine",
         align=WD_ALIGN_PARAGRAPH.CENTER,
         first_line=False,
     )
@@ -368,16 +383,14 @@ def add_body(doc):
         doc,
         "项目输入包括 data/raw 目录下的 102 个 xlsx 文件以及 test.jsonl。每条测试样本包含 table_id、自然语言问题、标准答案、问题类型和难度。系统在评测时根据 table_id 读取对应工作簿，返回答案后与标准答案进行文本和数值匹配，并输出整体准确率和分类型准确率。",
     )
-    add_table(
+    add_labeled_items(
         doc,
-        ["项目", "说明"],
         [
-            ["表格数量", "102 张真实 Excel 表格"],
-            ["问题数量", "764 条自然语言查询"],
-            ["问题类型", "内容匹配、数值计算、语义感知"],
-            ["评测输出", "evaluation_report.json"],
+            ("表格数量", "102 张真实 Excel 表格"),
+            ("问题数量", "764 条自然语言查询"),
+            ("问题类型", "内容匹配、数值计算、语义感知"),
+            ("评测输出", "evaluation_report.json"),
         ],
-        [1.0, 2.0],
     )
 
     add_heading(doc, "3 系统总体架构", 1)
@@ -405,16 +418,14 @@ def add_body(doc):
         doc,
         "根据题目要求，系统没有把所有表格强行放入一种数据库，而是按数据形态选择存储。SQLite 用于存储单元格、行证据和局部关系结果，优点是可查询、可审计、便于按 table_id 与坐标回溯；JSON 用于保存轻量 n-gram/BM25 风格索引，优点是无需下载 embedding 模型即可离线召回；KV 元数据用于保存文件路径、表格规模、标题和运行配置；向量数据库与 LLM Agent 保留接口，但默认不参与运行，以保证课堂环境可复现。",
     )
-    add_table(
+    add_labeled_items(
         doc,
-        ["形态", "方案", "作用"],
         [
-            ["单元格/行", "SQLite", "结构化查询与证据回溯"],
-            ["稀疏索引", "JSON", "离线关键词召回"],
-            ["元数据", "KV/JSON", "标题、路径、规模记录"],
-            ["语义扩展", "LLM/向量", "后续增强接口"],
+            ("单元格与行证据", "写入 SQLite，用于结构化查询、坐标回溯和结果审计。"),
+            ("稀疏检索索引", "写入 JSON，使用中文 n-gram/BM25 风格重合度离线召回。"),
+            ("表级元数据", "使用 KV/JSON 保存标题、路径、规模、章节和运行配置。"),
+            ("语义扩展接口", "保留 LLM/向量检索入口，但默认离线运行，保证课程环境可复现。"),
         ],
-        [0.8, 0.9, 1.3],
     )
 
     add_heading(doc, "6 查询路由逻辑", 1)
@@ -432,17 +443,15 @@ def add_body(doc):
         doc,
         "早期版本主要依赖单元格检索，因此在简单查值题上可以工作，但对计数、列表、跨月份运算和多条件筛选较弱。本次优化加入了关系执行器、表格适配性判断、章节范围统计、宽表月份解析、百分比/差值计算、无表头文本表恢复和更保守的列表答案匹配，使系统从“能找相似文本”逐步变成“能执行局部表格操作”。",
     )
-    add_table(
+    add_labeled_items(
         doc,
-        ["问题", "处理"],
         [
-            ["旧指标仍为 30.37%", "同步为最新 55.37%"],
-            ["关系表缺失", "新增局部关系视图"],
-            ["章节计数失败", "记录章节与条目边界"],
-            ["月份宽表错误", "识别月份列并执行差值"],
-            ["列表答案过严", "增加保守集合匹配"],
+            ("指标同步", "将旧报告中的 30.37% 更新为当前全量评测 55.37%。"),
+            ("关系表缺失", "新增局部关系视图，让可关系化表格进入筛选和聚合流程。"),
+            ("章节计数失败", "记录章节与条目边界，支持章节范围内的 count/list 查询。"),
+            ("月份宽表错误", "识别横向月份列，执行跨月差值、百分比和聚合计算。"),
+            ("列表答案过严", "增加保守集合匹配，降低顺序和分隔符差异造成的误判。"),
         ],
-        [1.15, 1.85],
     )
 
     add_heading(doc, "8 实验设置与结果", 1)
@@ -450,25 +459,12 @@ def add_body(doc):
         doc,
         "实验在本地 Windows + Python 环境中完成，默认不启用在线 LLM API。评测命令为 python src/main.py --evaluate --quiet，系统读取完整 test.jsonl，并将结果写入 data/processed/evaluation_report.json。当前版本全量样本准确率为 55.37%，已接近课程项目设定的 60% 左右目标。",
     )
-    add_table(
+    add_labeled_items(
         doc,
-        ["版本", "整体", "说明"],
         [
-            ["初始版", "30.37%", "单元格检索为主"],
-            ["中间版", "46.99%", "加入关系执行"],
-            ["当前版", "55.37%", "增强宽表、章节、列表"],
+            ("版本演进", "初始版 30.37%，以单元格检索为主；中间版 46.99%，加入关系执行；当前版 55.37%，增强宽表、章节和列表处理。"),
+            ("分类结果", "Content Match：484 条，61.16%；Numeric Computation：157 条，43.95%；Semantic-Aware：123 条，47.15%。"),
         ],
-        [0.9, 0.75, 1.35],
-    )
-    add_table(
-        doc,
-        ["类别", "样本", "准确率"],
-        [
-            ["Content Match", "484", "61.16%"],
-            ["Numeric Computation", "157", "43.95%"],
-            ["Semantic-Aware", "123", "47.15%"],
-        ],
-        [1.2, 0.7, 0.9],
     )
     add_paragraph(
         doc,

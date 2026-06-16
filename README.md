@@ -54,8 +54,8 @@ Semantic-Aware: 47.15%
 
 ## 报告文件
 
-扩写后的课程报告位于：
+校对后的课程报告位于：
 
 ```text
-data/processed/ST_QueryEngine_Report_final_expanded.docx
+data/processed/ST_QueryEngine_Report_final.docx
 ```
