@@ -15,6 +15,9 @@ env/
 .vscode/
 .codegraph/
 
+# Local auxiliary notes
+docs/
+
 # Runtime/generated indexes
 data/processed/chroma*/
 data/processed/report_*render*/
