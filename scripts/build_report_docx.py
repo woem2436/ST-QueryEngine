@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 from docx import Document
 from docx.enum.section import WD_SECTION
@@ -13,6 +14,18 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = PROJECT_ROOT / "data" / "processed" / "CJC-Templet_Word2003_converted.docx"
 OUTPUT = PROJECT_ROOT / "data" / "processed" / "ST_QueryEngine_Report_final.docx"
 FALLBACK_OUTPUT = PROJECT_ROOT / "data" / "processed" / "ST_QueryEngine_Report_final_expanded.docx"
+
+
+def normalize_percent_spacing(text):
+    """?????????????????????????????????"""
+    if not isinstance(text, str):
+        return text
+    left_tight = r"\u4e00-\u9fff???????"
+    right_tight = r"\u4e00-\u9fff????????"
+    percent = r"\d+(?:\.\d+)?%"
+    text = re.sub(rf"(?<=[{left_tight}])\s+({percent})", r"\1", text)
+    text = re.sub(rf"({percent})\s+(?=[{right_tight}])", r"\1", text)
+    return text
 
 
 def set_east_asia_font(run, font_name="宋体"):
@@ -74,7 +87,7 @@ def add_paragraph(doc, text="", style=None, align=None, first_line=True):
     fmt.space_after = Pt(3)
     if first_line and style is None:
         fmt.first_line_indent = Pt(18)
-    run = p.add_run(text)
+    run = p.add_run(normalize_percent_spacing(text))
     set_east_asia_font(run)
     return p
 
@@ -93,10 +106,10 @@ def add_kv_line(doc, key, value):
     p = doc.add_paragraph()
     p.paragraph_format.first_line_indent = Pt(0)
     p.paragraph_format.space_after = Pt(2)
-    r1 = p.add_run(key)
+    r1 = p.add_run(normalize_percent_spacing(key))
     r1.bold = True
     set_east_asia_font(r1, "黑体")
-    r2 = p.add_run(value)
+    r2 = p.add_run(normalize_percent_spacing(value))
     set_east_asia_font(r2)
     return p
 
@@ -112,7 +125,7 @@ def add_labeled_items(doc, items):
         r1 = p.add_run(f"{label}：")
         r1.bold = True
         set_east_asia_font(r1, "黑体")
-        r2 = p.add_run(text)
+        r2 = p.add_run(normalize_percent_spacing(text))
         set_east_asia_font(r2)
 
 
@@ -358,6 +371,44 @@ def add_file_details_appendix(doc):
     )
 
 
+def add_self_assessment_appendix(doc):
+    add_heading(doc, "附录B 期末自评", 1)
+    add_paragraph(doc, "姓名：XXX\n学号：XXX\n自评分数：XX / 100", first_line=False)
+    add_paragraph(
+        doc,
+        "本学期在数据库原理与运用课程中，我主要完成了以下学习与实践工作：",
+    )
+    add_paragraph(
+        doc,
+        "1. 数据库课程知识学习\n说明学习了关系模型、SQL 查询、数据存储、索引、事务和数据库应用开发等内容。",
+        first_line=False,
+    )
+    add_paragraph(
+        doc,
+        "2. 项目调研与选题理解\n说明阅读并理解了 SSTQA-zh 数据集和 ST-Raptor 论文思路，明确半结构化表格不能简单直接转 SQL。",
+        first_line=False,
+    )
+    add_paragraph(
+        doc,
+        "3. 系统设计与实现工作\n说明参与/完成了 Excel 表格解析、合并单元格处理、SQLite/JSON 混合存储、自然语言查询路由、答案匹配与准确率统计等工作。",
+        first_line=False,
+    )
+    add_paragraph(
+        doc,
+        "4. 测试、调试与优化\n说明进行了全量 test.jsonl 评测，分析错误样本，将准确率优化到 55.37%，并补充报告和说明文档。",
+        first_line=False,
+    )
+    add_paragraph(
+        doc,
+        "5. 收获与不足\n说明通过项目理解了数据库系统在真实复杂数据中的应用，也认识到语义归纳、复杂表结构恢复仍有不足。",
+        first_line=False,
+    )
+    add_paragraph(
+        doc,
+        "综上，我认为自己基本完成了课程项目要求，能够将数据库课程知识应用到真实半结构化表格问答系统中。自评分：XX 分。",
+    )
+
+
 def add_body(doc):
     body_section = doc.add_section(WD_SECTION.CONTINUOUS)
     set_section_columns(body_section, 2)
@@ -369,13 +420,13 @@ def add_body(doc):
     )
     add_paragraph(
         doc,
-        "SIGMOD 2025 论文 ST-Raptor 指出，半结构化表格问答需要同时处理内容定位、表头层级、隐式关系和操作推理。该工作提出 HO-Tree、树操作流水线和前后向验证机制，并发布包含 102 张真实表格、764 个问题的 SSTQA 基准。本文不直接复现大型 LLM 框架，而是在课程项目范围内实现一个轻量、可解释、可评测的系统，重点探索表格拆分、存储选择和查询路由三件事。",
+        "SIGMOD 2025 论文 ST-Raptor 指出，半结构化表格问答需要同时处理内容定位、表头层级、隐式关系和操作推理[1]。该工作提出 HO-Tree、树操作流水线和前后向验证机制，并发布包含 102 张真实表格、764 个问题的 SSTQA 基准[2]。本文不直接复现大型 LLM 框架，而是在课程项目范围内实现一个轻量、可解释、可评测的系统，重点探索表格拆分、存储选择和查询路由三件事。",
     )
 
     add_heading(doc, "2 任务定义与数据集", 1)
     add_paragraph(
         doc,
-        "项目输入包括 data/raw 目录下的 102 个 xlsx 文件以及 test.jsonl。每条测试样本包含 table_id、自然语言问题、标准答案、问题类型和难度。系统在评测时根据 table_id 读取对应工作簿，返回答案后与标准答案进行文本和数值匹配，并输出整体准确率和分类型准确率。",
+        "项目输入包括 SSTQA-zh 数据集中 data/raw 目录下的 102 个 xlsx 文件以及 test.jsonl[2]。每条测试样本包含 table_id、自然语言问题、标准答案、问题类型和难度。系统在评测时根据 table_id 读取对应工作簿，返回答案后与标准答案进行文本和数值匹配，并输出整体准确率和分类型准确率。",
     )
     add_labeled_items(
         doc,
@@ -400,7 +451,7 @@ def add_body(doc):
     add_heading(doc, "4 表格拆分策略", 1)
     add_paragraph(
         doc,
-        "拆分策略遵循“能关系化的关系化，不能关系化的证据化”的原则。首先用 openpyxl 读取公式缓存后的显示值，填充所有合并单元格，并裁剪全空边界。随后识别表头候选行、标题行和章节行，为每个非空单元格生成包含 value、row_text、above_text、left_text、right_text、坐标和单位的证据记录。这样即使表格无法直接转成 SQL 表，系统仍能基于上下文定位答案。",
+        "拆分策略遵循“能关系化的关系化，不能关系化的证据化”的原则。首先用 openpyxl 读取公式缓存后的显示值，填充所有合并单元格，并裁剪全空边界[5]。随后识别表头候选行、标题行和章节行，为每个非空单元格生成包含 value、row_text、above_text、left_text、right_text、坐标和单位的证据记录。这样即使表格无法直接转成 SQL 表，系统仍能基于上下文定位答案。",
     )
     add_paragraph(
         doc,
@@ -410,7 +461,7 @@ def add_body(doc):
     add_heading(doc, "5 存储方案选择依据", 1)
     add_paragraph(
         doc,
-        "根据题目要求，系统没有把所有表格强行放入一种数据库，而是按数据形态选择存储。SQLite 用于存储单元格、行证据和局部关系结果，优点是可查询、可审计、便于按 table_id 与坐标回溯；JSON 用于保存轻量 n-gram/BM25 风格索引，优点是无需下载 embedding 模型即可离线召回；KV 元数据用于保存文件路径、表格规模、标题和运行配置；向量数据库与 LLM Agent 保留接口，但默认不参与运行，以保证课堂环境可复现。",
+        "根据题目要求，系统没有把所有表格强行放入一种数据库，而是按数据形态选择存储。SQLite 用于存储单元格、行证据和局部关系结果，优点是可查询、可审计、便于按 table_id 与坐标回溯[4]；JSON 用于保存轻量 n-gram/BM25 风格索引，优点是无需下载 embedding 模型即可离线召回；KV 元数据用于保存文件路径、表格规模、标题和运行配置；向量数据库与 LLM Agent 保留接口，但默认不参与运行，以保证课堂环境可复现。",
     )
     add_labeled_items(
         doc,
@@ -472,7 +523,7 @@ def add_body(doc):
     )
     add_paragraph(
         doc,
-        "与 ST-Raptor 相比，本项目没有构建完整 HO-Tree 和 LLM 操作流水线，而是实现了一个轻量近似：用表头、章节、左右上下文和关系视图表达隐式结构，用规则执行器模拟 lookup、filter、aggregate、compare 等基本操作，再用答案匹配器做结果验证。这一设计牺牲了一部分泛化能力，但换来了实现完整度、可解释性和运行稳定性。",
+        "与 ST-Raptor[1] 相比，本项目没有构建完整 HO-Tree 和 LLM 操作流水线，而是实现了一个轻量近似：用表头、章节、左右上下文和关系视图表达隐式结构，用规则执行器模拟 lookup、filter、aggregate、compare 等基本操作，再用答案匹配器做结果验证。这一设计牺牲了一部分泛化能力，但换来了实现完整度、可解释性和运行稳定性。",
     )
 
     add_heading(doc, "10 错误分析与改进方向", 1)
@@ -488,7 +539,7 @@ def add_body(doc):
     add_heading(doc, "11 结论", 1)
     add_paragraph(
         doc,
-        "本文完成了一个面向 SSTQA-zh 的表格数据智能查询系统，实现了从 Excel 结构解析、混合存储、自然语言查询、路由执行到准确率评测的完整闭环。系统当前在 764 条测试样本上达到 55.37% 的准确率，说明结构分析、存储选择和查询路由是解决半结构化表格问答的有效路径。虽然距离 ST-Raptor 这类完整 LLM 框架仍有差距，但该系统已经具备课程项目所需的完整性、可解释性和可继续研究的扩展空间。",
+        "本文完成了一个面向 SSTQA-zh[2] 的表格数据智能查询系统，实现了从 Excel 结构解析、混合存储、自然语言查询、路由执行到准确率评测的完整闭环。系统当前在 764 条测试样本上达到 55.37% 的准确率，说明结构分析、存储选择和查询路由是解决半结构化表格问答的有效路径。虽然距离 ST-Raptor[1] 这类完整 LLM 框架仍有差距，但该系统已经具备课程项目所需的完整性、可解释性和可继续研究的扩展空间。",
     )
 
     appendix_break = doc.add_paragraph()
@@ -496,6 +547,8 @@ def add_body(doc):
     appendix_break.add_run().add_break(WD_BREAK.PAGE)
 
     add_file_details_appendix(doc)
+
+    add_self_assessment_appendix(doc)
 
     break_p = doc.add_paragraph()
     break_p.paragraph_format.space_after = Pt(0)

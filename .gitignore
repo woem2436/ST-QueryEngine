@@ -18,6 +18,7 @@ env/
 # Runtime/generated indexes
 data/processed/chroma*/
 data/processed/report_*render*/
+render_tmp/
 data/processed/*.db
 data/processed/table_index.json
 data/processed/metadata.json
@@ -28,6 +29,7 @@ data/processed/metadata.json
 # Generated report artifacts
 data/processed/CJC-Templet_Word2003_converted.docx
 data/processed/ST_QueryEngine_Report_final*.docx
+data/processed/ST_QueryEngine_Report_final*.pdf
 data/processed/ST_QueryEngine_Report.docx
 data/processed/ST_QueryEngine_Report_fixed.docx
 data/processed/*_word_export.pdf
