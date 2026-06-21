@@ -29,6 +29,9 @@ data/processed/metadata.json
 # Keep the latest evaluation summary
 !data/processed/evaluation_report.json
 
+# Local report builder
+scripts/build_report_docx.py
+
 # Generated report artifacts
 data/processed/CJC-Templet_Word2003_converted.docx
 data/processed/ST_QueryEngine_Report_final*.docx
