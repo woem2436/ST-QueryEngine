@@ -32,6 +32,9 @@ data/processed/metadata.json
 # Local report builder
 scripts/build_report_docx.py
 
+# Optional local vectorization experiment
+scripts/vectorize_tables.py
+
 # Generated report artifacts
 data/processed/CJC-Templet_Word2003_converted.docx
 data/processed/ST_QueryEngine_Report_final*.docx
